@@ -1,0 +1,33 @@
+name: update
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # ежедневно 9:00 МСК
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - name: Run update
+        run: ./update.sh
+      - name: Build check
+        run: nix-build -E 'with import <nixpkgs> {}; callPackage ./package.nix {}'
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- sources.json npm-shrinkwrap.json; then
+            echo "already up to date"
+            exit 0
+          fi
+          ver=$(jq -r .version sources.json)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "pi: update to $ver"
+          git push

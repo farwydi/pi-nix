@@ -1,0 +1,9 @@
+{
+  "name": "farwydi-pi-package",
+  "version": "0.0.0",
+  "private": true,
+  "pi": {
+    "extensions": ["./extensions"],
+    "skills": ["./skills"]
+  }
+}
